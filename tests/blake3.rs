@@ -1,17 +1,18 @@
 use std::fs;
 
 use chumsky::Parser;
-use serde::{Deserialize, Serialize};
-use tracing::info;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use vm::{
-    VmT, ffi,
-    mir::{
+use palinka::{
+    VmT,
+    cefre::{
         CheckCtx, Ctx,
         parse::grammar,
         pass::{ConstEval, ConstProp, DeadCodeRemoval, DefInline, LoopUnroll, MergeAlloc, Pass},
     },
+    ffi,
 };
+use serde::{Deserialize, Serialize};
+use tracing::info;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 pub fn make_test_input(len: usize) -> Vec<u8> {
     (0..).map(|i| (i % 251) as u8).take(len).collect()
@@ -44,7 +45,7 @@ fn blake3_vectors() {
         .with(tracing_subscriber::filter::EnvFilter::from_default_env())
         .try_init();
 
-    let raw = fs::read_to_string("tests/blake3.mir").unwrap();
+    let raw = fs::read_to_string("tests/blake3.cfr").unwrap();
 
     let ast = grammar().block.parse(&raw).unwrap();
 

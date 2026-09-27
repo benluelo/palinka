@@ -8,7 +8,7 @@ use chumsky::{
     },
 };
 
-use crate::mir::ast::{
+use crate::cefre::ast::{
     Assignment, Block, Break, BuiltinOrDef, Continue, Def, Else, Expr, Ident, If, Label, Loop,
     Statement, Val,
 };

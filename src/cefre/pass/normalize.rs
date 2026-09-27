@@ -1,6 +1,6 @@
 use chumsky::span::Spanned;
 
-use crate::mir::{
+use crate::cefre::{
     CheckCtx,
     ast::{Assignment, Block, Def, Else, Expr, Ident, If, Loop, Statement},
     pass::Pass,

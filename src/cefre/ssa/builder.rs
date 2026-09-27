@@ -3,14 +3,14 @@ use std::{
     fmt::{self},
 };
 
-use crate::mir::ssa::id_map::IdMap;
+use crate::cefre::ssa::id_map::IdMap;
 
 macro_rules! id {
     ($Ty:ident, $prefix:literal) => {
         #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
         pub struct $Ty(usize);
 
-        impl crate::mir::ssa::id_map::Id for $Ty {
+        impl crate::cefre::ssa::id_map::Id for $Ty {
             fn as_usize(self) -> usize {
                 self.0
             }

@@ -10,7 +10,7 @@ use tracing::{info_span, instrument, trace};
 
 use crate::{
     assembler::{AsmOp, Object},
-    mir::ast::{
+    cefre::ast::{
         Assignment, Block, Break, Builtin, BuiltinOrDef, Continue, Def, Else, Expr, Ident, If,
         Label, Loop, Statement, Val,
     },

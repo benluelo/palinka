@@ -1,4 +1,4 @@
-use crate::mir::{CheckCtx, ast::Block};
+use crate::cefre::{CheckCtx, ast::Block};
 
 mod const_eval;
 mod const_prop;
@@ -35,7 +35,7 @@ mod tests {
     use chumsky::Parser;
 
     use super::*;
-    use crate::mir::parse::{grammar, print_ast};
+    use crate::cefre::parse::{grammar, print_ast};
 
     #[test]
     fn normalize() {

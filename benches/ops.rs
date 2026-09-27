@@ -3,8 +3,8 @@ use std::hint::black_box;
 use criterion::{
     BatchSize, BenchmarkGroup, Criterion, criterion_group, criterion_main, measurement::WallTime,
 };
+use palinka::{Op, Vm};
 use rand::RngExt;
-use vm::{Op, Vm};
 
 fn criterion_benchmark(c: &mut Criterion) {
     let mut group = c.benchmark_group("ops");

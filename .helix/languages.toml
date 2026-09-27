@@ -2,15 +2,15 @@
 clangd = { command = "clangd", args = [ "--clang-tidy" ] }
 
 [[language]]
-name = "mir"
-scope = "source.mir"
-injection-regex = "mir"
-file-types = ["mir"]
+name = "cefre"
+scope = "source.cfr"
+injection-regex = "cfr"
+file-types = ["cfr"]
 comment-tokens = "#"
 indent = { tab-width = 2, unit = "  " }
-# formatter = { command = "mir-formatter" , args = ["--stdin"] }
-# language-servers = [ "mir-lsp" ]
+# formatter = { command = "cfr-formatter" , args = ["--stdin"] }
+# language-servers = [ "cfr-lsp" ]
 
 [[grammar]]
-name = "mir"
-source = { path = "/home/ben/projects/benluelo/vm/tree-sitter-mir" }
+name = "cfr"
+source = { path = "./tree-sitter-cfr" }

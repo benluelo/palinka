@@ -13,7 +13,7 @@ use const_hex::ToHexExt;
 use tracing::trace;
 
 pub mod assembler;
-pub mod mir;
+pub mod cefre;
 
 pub mod ffi;
 pub mod tail;

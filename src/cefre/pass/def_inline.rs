@@ -1,7 +1,7 @@
 use chumsky::span::Spanned;
 use tracing::trace;
 
-use crate::mir::{
+use crate::cefre::{
     CheckCtx,
     ast::{Assignment, Block, BuiltinOrDef, Def, Else, Expr, Ident, If, Loop, Statement},
     pass::Pass,

@@ -20,7 +20,13 @@ fn main() {
     println!("cargo:rerun-if-changed=c/");
     println!("cargo:rerun-if-changed=zig/");
 
+    let use_lto = std::env::var("PROFILE").is_ok_and(|profile| matches!(&*profile, "lto"));
+
     let fuzzing = std::env::var("CARGO_CFG_FUZZING").is_ok();
+
+    if fuzzing && use_lto {
+        panic!("cannot use lto with fuzzing")
+    }
 
     run(
         "clang",
@@ -28,10 +34,9 @@ fn main() {
             if fuzzing {
                 &[&"-fsanitize=address", &"-Wl,-fsanitize=address", &"-static-libasan"]
             } else {
-                &[
-                    // &"-flto=full"
-                ]
+                &[]
             },
+            if use_lto { &[&"-flto=full"] } else { &[] },
             &[
                 &"-O3",
                 &"-static",
@@ -71,13 +76,7 @@ fn main() {
                 &"-Ofast",
                 &format!("-femit-bin={}", outdir.join("libvm_zig.a").to_str().unwrap()),
             ],
-            if fuzzing {
-                &[]
-            } else {
-                &[
-                // &"-flto"
-            ]
-            },
+            if use_lto { &[&"-flto"] } else { &[] },
         ],
     );
 }

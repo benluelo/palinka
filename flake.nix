@@ -71,20 +71,21 @@
             url = "https://raw.githubusercontent.com/BLAKE3-team/BLAKE3/refs/heads/master/test_vectors/test_vectors.json";
             sha256 = "sha256:097n6bdn9l67jnjqsr6gg2pg7acr3bf7rbrjwvbfcxycmjl1xffw";
           };
-          build = crane.lib.buildPackage {
-            src =
-              let
-                unfilteredRoot = ./.;
-              in
-              pkgs.lib.fileset.toSource {
-                root = unfilteredRoot;
-                fileset = pkgs.lib.fileset.unions [
-                  (crane.lib.fileset.commonCargoSources unfilteredRoot)
-                  ./c
-                  ./zig
-                ];
-              };
-            doCheck = false;
+          src =
+            extra:
+            let
+              unfilteredRoot = ./.;
+            in
+            pkgs.lib.fileset.toSource {
+              root = unfilteredRoot;
+              fileset = pkgs.lib.fileset.unions [
+                (crane.lib.fileset.commonCargoSources unfilteredRoot)
+                ./c
+                ./zig
+                extra
+              ];
+            };
+          crateAttrs = {
             nativeBuildInputs = [
               pkgs.pkg-config
               pkgs.rustPlatform.bindgenHook
@@ -101,20 +102,26 @@
             preBuild = ''
               # zig needs a $HOME dir for caching (non-configurable)
               export ZIG_GLOBAL_CACHE_DIR=.
-              zig version
             '';
-            cargoBuildCommand = "cargo build --release -Ftracing-off";
-            meta.mainProgram = "vm";
           };
+          build = crane.lib.buildPackage (
+            crateAttrs
+            // {
+              src = src pkgs.lib.fileset.empty;
+              doCheck = false;
+              cargoBuildCommand = "cargo build --profile lto -Ftracing-off";
+              meta.mainProgram = "palinka";
+            }
+          );
           buildObject =
-            mirFile:
+            cefreFile:
             pkgs.clangStdenv.mkDerivation {
-              name = "${baseNameOf mirFile}.o";
-              src = mirFile;
+              name = "${baseNameOf cefreFile}.o";
+              src = cefreFile;
               dontUnpack = true;
               buildInputs = [ build ];
               buildPhase = ''
-                vm build ${mirFile} -o a.out
+                palinka build ${cefreFile} -o a.out
               '';
               installPhase = ''
                 mv ./a.out "$out"
@@ -133,72 +140,94 @@
           packages = {
             rust-nightly = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
             default = build;
-            build-rust = build;
+            inherit build;
           };
           apps =
             builtins.mapAttrs
               (name: value: {
                 type = "app";
                 program = value;
+                meta = value.meta or { };
               })
               {
-                run =
+                mini-benchmark =
                   let
-                    cmd = "${pkgs.lib.getExe self'.packages.build-rust} run --obj ${buildObject ./tests/sha3-256.mir} --input-file ${./random.bin}";
+                    cmd = ''${pkgs.lib.getExe self'.packages.build} run --obj ${buildObject ./tests/sha3-256.cfr} --input-file "''${1:-${./random.bin}}"'';
                   in
                   pkgs.writeShellApplication {
                     name = "run";
                     text = ''
-                      echo running rust
+                      echo "Palinka VM Implementation Benchmark"
+                      echo ""
+                      echo "Each implementation will run the same program: sha3-256 hash of 1mb of random data."
+                      echo "Alternatively, a different input file can be provided as the first argument to this script."
+                      echo ""
+
+                      echo "Running rust..."
                       time ${cmd} -i rust
                       echo
 
-                      echo running rust-tail-call
-                      time ${cmd} -i rust-tail-call
+                      echo "Running rust-tc..."
+                      time ${cmd} -i rust-tc
                       echo
 
-                      echo running zig
+                      echo "Running zig..."
                       time ${cmd} -i zig
                       echo
 
-                      echo running c-computed-goto
-                      time ${cmd} -i c-computed-goto
+                      echo "Running c..."
+                      time ${cmd} -i c
                       echo
                     '';
+                    meta.description = "Run a mini comparison benchmark of all implementations.";
                   };
-                fetch-nist-vectors = pkgs.writeShellApplication {
-                  name = "fetch-nist-vectors";
+                install-nist-vectors = pkgs.writeShellApplication {
+                  name = "install-nist-vectors";
                   text = ''
                     rm -r .nist-vectors/ 2>/dev/null || echo ""
                     mkdir -p .nist-vectors
                     cp -r --no-preserve=mode ${nist-vectors}/* .nist-vectors
                   '';
+                  meta.description = "Install the NIST sha3 test vectors in the current directory in .nist-vectors/.";
                 };
-                fetch-blake3-vectors = pkgs.writeShellApplication {
-                  name = "fetch-blake3-vectors";
+                install-blake3-vectors = pkgs.writeShellApplication {
+                  name = "install-blake3-vectors";
                   text = ''
                     rm -r .blake3-vectors/ 2>/dev/null || echo ""
                     mkdir -p .blake3-vectors
                     cp -r --no-preserve=mode ${blake3-vectors} .blake3-vectors/test_vectors.json
                   '';
+                  meta.description = "Install the blake3 test vectors in the current directory in .blake3-vectors/.";
                 };
               };
           checks = {
-            default = crane.lib.cargoTest {
-              strictDeps = true;
-              src = ./.;
-              cargoArtifacts = crane.lib.buildDepsOnly {
-                strictDeps = true;
-                src = ./.;
-              };
-            };
+            default =
+              let
+                attrs = crateAttrs // {
+                  src = src ./tests;
+                };
+              in
+              crane.lib.cargoTest (
+                attrs
+                // {
+                  preBuild = ''
+                    ${attrs.preBuild}
+
+                    ${self'.apps.install-blake3-vectors.program}
+                    ${self'.apps.install-nist-vectors.program}
+                  '';
+
+                  cargoTestExtraArgs = "-- --nocapture";
+
+                  cargoArtifacts = crane.lib.buildDepsOnly attrs;
+                }
+              );
           };
           devShells = {
             default = pkgs.mkShellNoCC.override { stdenv = pkgs.clangStdenv; } {
-              # inputsFrom = [ build-rust ];
               buildInputs = [
-                (dbg pkgs.llvmPackages_latest.libclang.lib)
-                (dbg pkgs.llvmPackages_latest.libllvm)
+                pkgs.llvmPackages_latest.libclang.lib
+                pkgs.llvmPackages_latest.libllvm
                 pkgs.llvmPackages_latest.lld
                 pkgs.llvmPackages_latest.bintools
                 pkgs.clangStdenv.cc.libc
@@ -206,7 +235,6 @@
               ]
               ++ [ pkgs.zigpkgs.master ]
               ++ (with pkgs; [
-                # (dbg overrideCC)
                 cargo-fuzz
                 jq
                 moreutils
@@ -222,11 +250,7 @@
                 hexyl
                 zig
                 zls
-                # libclang
-                (dbg clang-tools)
-                # llvmPackages_latest.libllvm
-                # llvmPackages_latest.libcxx
-                # llvmPackages_latest.clang
+                clang-tools
               ]);
               LIBCLANG_PATH = "${pkgs.llvmPackages_latest.libclang.lib}/lib";
               CUSTOM_LIBFUZZER_PATH =
@@ -237,7 +261,6 @@
               nativeBuildInputs = [
                 pkgs.pkg-config
                 pkgs.rustPlatform.bindgenHook
-                # pkgs.gcc16Stdenv.cc.libc.static
                 config.treefmt.build.wrapper
               ]
               ++ pkgs.lib.attrsets.attrValues config.treefmt.build.programs;

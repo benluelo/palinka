@@ -7,7 +7,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::{
     assembler::AsmOp,
-    mir::{
+    cefre::{
         IdentifiedLabel, LabelId,
         ast::{Block, Builtin, BuiltinOrDef, Def, Else, Expr, Ident, Label, Loop, Statement},
         ssa::builder::{
@@ -496,7 +496,7 @@ mod tests {
     use chumsky::Parser;
 
     use super::*;
-    use crate::mir::parse::{grammar, print_ast};
+    use crate::cefre::parse::{grammar, print_ast};
 
     #[test]
     fn compile_expr() {

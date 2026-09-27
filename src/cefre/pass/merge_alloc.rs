@@ -1,7 +1,7 @@
 use chumsky::span::Spanned;
 use tracing::trace;
 
-use crate::mir::{
+use crate::cefre::{
     CheckCtx, Visitor,
     ast::{Block, Builtin, BuiltinOrDef, Expr, Statement, Val},
 };
@@ -46,7 +46,7 @@ mod tests {
     use chumsky::Parser;
 
     use super::*;
-    use crate::mir::{
+    use crate::cefre::{
         parse::{grammar, print_ast},
         pass::init,
     };

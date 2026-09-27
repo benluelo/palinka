@@ -2,7 +2,7 @@
 /zig/.zig-cache
 /zig/zig-out
 
-out-*.mir
+out-*.cfr
 
 profile.json.gz
 
@@ -11,60 +11,60 @@ profile.json.gz
 .nist-vectors/
 .blake3-vectors/
 
-tree-sitter-mir/bindings/
+tree-sitter-cefre/bindings/
 
-## from the tree-sitter-mir/.gitignore file
+## from the tree-sitter-cefre/.gitignore file
 
 # Rust artifacts
-tree-sitter-mir/target/
-tree-sitter-mir/Cargo.lock
+tree-sitter-cfr/target/
+tree-sitter-cfr/Cargo.lock
 
 # Node artifacts
-tree-sitter-mir/build/
-tree-sitter-mir/prebuilds/
-tree-sitter-mir/node_modules/
-tree-sitter-mir/package-lock.json
+tree-sitter-cefre/build/
+tree-sitter-cefre/prebuilds/
+tree-sitter-cefre/node_modules/
+tree-sitter-cefre/package-lock.json
 
 # Swift artifacts
-tree-sitter-mir/.build/
-tree-sitter-mir/Package.resolved
+tree-sitter-cefre/.build/
+tree-sitter-cefre/Package.resolved
 
 # Go artifacts
-tree-sitter-mir/_obj/
+tree-sitter-cefre/_obj/
 
 # Python artifacts
-tree-sitter-mir/.venv/
-tree-sitter-mir/dist/
-tree-sitter-mir/*.egg-info
-tree-sitter-mir/*.whl
+tree-sitter-cefre/.venv/
+tree-sitter-cefre/dist/
+tree-sitter-cefre/*.egg-info
+tree-sitter-cefre/*.whl
 
 # C artifacts
-tree-sitter-mir/*.a
-tree-sitter-mir/*.so
-tree-sitter-mir/*.so.*
-tree-sitter-mir/*.dylib
-tree-sitter-mir/*.dll
-tree-sitter-mir/*.pc
-tree-sitter-mir/*.exp
-tree-sitter-mir/*.lib
+tree-sitter-cefre/*.a
+tree-sitter-cefre/*.so
+tree-sitter-cefre/*.so.*
+tree-sitter-cefre/*.dylib
+tree-sitter-cefre/*.dll
+tree-sitter-cefre/*.pc
+tree-sitter-cefre/*.exp
+tree-sitter-cefre/*.lib
 
 # Zig artifacts
-tree-sitter-mir/.zig-cache/
-tree-sitter-mir/zig-cache/
-tree-sitter-mir/zig-out/
+tree-sitter-cefre/.zig-cache/
+tree-sitter-cefre/zig-cache/
+tree-sitter-cefre/zig-out/
 
 # Example dirs
-tree-sitter-mir/examples/*/
+tree-sitter-cefre/examples/*/
 
 # Grammar volatiles
-tree-sitter-mir/*.wasm
-tree-sitter-mir/*.obj
-tree-sitter-mir/*.o
+tree-sitter-cefre/*.wasm
+tree-sitter-cefre/*.obj
+tree-sitter-cefre/*.o
 
 # Archives
-tree-sitter-mir/*.tar.gz
-tree-sitter-mir/*.tgz
-tree-sitter-mir/*.zip
+tree-sitter-cefre/*.tar.gz
+tree-sitter-cefre/*.tgz
+tree-sitter-cefre/*.zip
 vm.llbc
 a.out
 .out

@@ -1,16 +1,16 @@
 use std::fs;
 
 use chumsky::Parser;
-use tracing::info;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use vm::{
+use palinka::{
     Vm,
-    mir::{
+    cefre::{
         CheckCtx, Ctx,
         parse::grammar,
         pass::{ConstEval, ConstProp, DeadCodeRemoval, DefInline, LoopUnroll, MergeAlloc, Pass},
     },
 };
+use tracing::info;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 fn load_nist_vectors(file_name: &str) -> Vec<(usize, Vec<u8>, Vec<u8>)> {
     fs::read_to_string(format!(".nist-vectors/{file_name}"))
@@ -61,7 +61,7 @@ fn nist_vectors() {
         .with(tracing_subscriber::filter::EnvFilter::from_default_env())
         .try_init();
 
-    let raw = fs::read_to_string("tests/sha3-256.mir").unwrap();
+    let raw = fs::read_to_string("tests/sha3-256.cfr").unwrap();
 
     let ast = grammar().block.parse(&raw).unwrap();
 

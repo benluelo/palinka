@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use chumsky::span::Spanned;
 
 use crate::{
-    mir::{
+    cefre::{
         CheckCtx, Visitor,
         ast::{self, Block, Builtin, BuiltinOrDef, Def, Expr, Ident, Statement, Val},
     },

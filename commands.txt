@@ -7,4 +7,4 @@ zig build --release=fast && time ./zig-out/bin/vm ../tests/sha3-256.o ../random.
 gcc -flto -Ofast c/vm.c && time ./a.out ./tests/sha3-256.o ../random.bin
 
 
-hx "$(ls out-*.mir -t | head -1)"
+hx "$(ls out-*.cfr -t | head -1)"

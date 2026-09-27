@@ -18,6 +18,18 @@ use crossterm::{
     execute,
     terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
+use palinka::{
+    CycleCountHook, CycleCountVm, Error, Hook, Op, StepResult, Vm, VmRunResult, VmT,
+    assembler::parse_asm,
+    cefre::{
+        self, CheckCtx, CompileResult, Ctx,
+        parse::print_ast,
+        pass::{ConstEval, ConstProp, DeadCodeRemoval, DefInline, LoopUnroll, MergeAlloc, Pass},
+    },
+    ffi,
+    tail::TcVm,
+    zig,
+};
 use ratatui::{
     Frame, Terminal,
     layout::{Constraint, Layout, Margin},
@@ -31,24 +43,12 @@ use ratatui::{
 };
 use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use vm::{
-    CycleCountHook, CycleCountVm, Error, Hook, Op, StepResult, Vm, VmRunResult, VmT,
-    assembler::parse_asm,
-    ffi,
-    mir::{
-        self, CheckCtx, CompileResult, Ctx,
-        parse::print_ast,
-        pass::{ConstEval, ConstProp, DeadCodeRemoval, DefInline, LoopUnroll, MergeAlloc, Pass},
-    },
-    tail::TcVm,
-    zig,
-};
 
 /// Compiler and assembler.
 #[derive(FromArgs, PartialEq, Debug)]
 struct Args {
     #[argh(subcommand)]
-    cmd: Cmd,
+    cmd: Option<Cmd>,
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
@@ -58,10 +58,9 @@ pub enum Cmd {
     Build(BuildCmd),
     Run(RunCmd),
     Debug(DebugCmd),
-    // Assemble {},
 }
 
-/// check a .mir file.
+/// check a .cfr file.
 #[derive(FromArgs, PartialEq, Debug)]
 #[argh(subcommand, name = "check")]
 pub struct CheckCmd {
@@ -70,7 +69,7 @@ pub struct CheckCmd {
     pub file: PathBuf,
 }
 
-/// build a .mir file.
+/// build a .cfr file.
 #[derive(FromArgs, PartialEq, Debug)]
 #[argh(subcommand, name = "build")]
 pub struct BuildCmd {
@@ -85,8 +84,8 @@ pub struct BuildCmd {
 
     /// the file to write the output to.
     ///
-    /// If not provided, this will default to
-    /// the input file name with the file extension replaced with `.o`.
+    /// if not provided, this will default to the input file name with the file
+    /// extension replaced with `.o`.
     #[argh(option, short = 'o')]
     pub out: Option<PathBuf>,
 
@@ -95,7 +94,7 @@ pub struct BuildCmd {
     pub emit: Emit,
 }
 
-/// run either a .mir or .asm file.
+/// run either a .cfr or .asm file.
 #[derive(FromArgs, PartialEq, Debug)]
 #[argh(subcommand, name = "run")]
 pub struct RunCmd {
@@ -122,7 +121,7 @@ pub struct RunCmd {
     /// path to the input to be provided to the program when executing with
     /// --run.
     ///
-    /// Incompatible with --input.
+    /// incompatible with --input.
     #[argh(option)]
     pub input_file: Option<PathBuf>,
 
@@ -141,12 +140,13 @@ pub struct RunCmd {
 
 #[derive(FromArgValue, PartialEq, Debug)]
 pub enum Implementation {
+    #[argh(name = "rust")]
     Rust,
-    #[argh(name = "rust-tail-call")]
+    #[argh(name = "rust-tc")]
     RustTailCall,
-    C,
-    #[argh(name = "c-computed-goto")]
+    #[argh(name = "c")]
     CComputedGoto,
+    #[argh(name = "zig")]
     Zig,
 }
 
@@ -154,26 +154,39 @@ pub enum Implementation {
 #[derive(FromArgs, PartialEq, Debug)]
 #[argh(subcommand, name = "debug")]
 pub struct DebugCmd {
-    /// the bytecode file to debug.
+    /// the file to compile.
     #[argh(positional)]
     pub file: PathBuf,
 
+    /// if this flag is provided, the source file will be treated as a assembly
+    /// file rather than a code file.
+    #[argh(switch)]
+    pub asm: bool,
+
+    /// if this flag is provided, the source file will be treated as an object
+    /// file rather than a code file.
+    #[argh(switch)]
+    pub obj: bool,
+
     /// input to be provided to the program.
     ///
-    /// Incompatible with --input-file.
+    /// incompatible with --input-file.
     #[argh(option)]
     pub input: Option<String>,
 
-    /// path to the input to be provided to the program when executing with
-    /// --run.
+    /// path to the input to be provided to the program.
     ///
-    /// Incompatible with --input.
+    /// incompatible with --input.
     #[argh(option)]
     pub input_file: Option<PathBuf>,
 
     /// whether to treat --input as hex.
     #[argh(switch)]
     pub input_hex: bool,
+
+    /// max memory.
+    #[argh(option, short = 'm', default = "usize::MAX")]
+    pub max_memory: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, Default, FromArgValue)]
@@ -191,11 +204,20 @@ fn main() -> anyhow::Result<()> {
 
     let args = argh::from_env::<Args>();
 
-    match args.cmd {
+    // argh doesn't have any "arg required else help" functionality
+    let Some(cmd) = args.cmd else {
+        let cmd = std::env::args().next().unwrap();
+        let cmd = std::path::Path::new(&cmd).file_name().and_then(|s| s.to_str()).unwrap_or(&cmd);
+        let early_exit = Args::from_args(&[cmd], &["--help"]).unwrap_err();
+        print!("{}", early_exit.output);
+        std::process::exit(0);
+    };
+
+    match cmd {
         Cmd::Check(CheckCmd { file }) => {
             let source = fs::read_to_string(&file)?;
 
-            match mir::parse::grammar().block.parse(&source).into_result() {
+            match cefre::parse::grammar().block.parse(&source).into_result() {
                 Ok(obj) => {
                     let mut ctx = CheckCtx::new("root");
                     ctx.check(&obj)?;
@@ -216,7 +238,7 @@ fn main() -> anyhow::Result<()> {
                     }
                 }
             } else {
-                match mir::parse::grammar().block.parse(&source).into_result() {
+                match cefre::parse::grammar().block.parse(&source).into_result() {
                     Ok(ast) => {
                         let ast = match optimize(ast) {
                             Ok(ast) => ast,
@@ -264,32 +286,7 @@ fn main() -> anyhow::Result<()> {
                 bail!("--asm is incompatible with --obj")
             }
 
-            let obj = if obj {
-                fs::read(&file).with_context(|| format!("path: {}", file.display()))?
-            } else if asm {
-                let source = fs::read_to_string(&file)?;
-                match parse_asm().parse(&source).into_result() {
-                    Ok(obj) => obj.assemble(),
-                    Err(errs) => {
-                        report_errors(&file, &source, errs);
-                    }
-                }
-            } else {
-                let source = fs::read_to_string(&file)?;
-                match mir::parse::grammar().block.parse(&source).into_result() {
-                    Ok(ast) => {
-                        let ast = optimize(ast)?;
-
-                        // println!("{}", print_ast(&ast));
-                        let mut ctx = Ctx::new_root();
-                        ctx.compile(&ast)?;
-                        ctx.into_object().assemble()
-                    }
-                    Err(errs) => {
-                        report_errors(&file, &source, errs);
-                    }
-                }
-            };
+            let obj = build_obj(file, asm, obj)?;
 
             let data = read_input(input, input_file, input_hex)?;
 
@@ -300,7 +297,6 @@ fn main() -> anyhow::Result<()> {
                 Implementation::RustTailCall => {
                     do_run(TcVm::new(Vm::new_with(obj, data, max_memory, CycleCountHook::new())));
                 }
-                Implementation::C => bail!("not implemented, use --c-computed-goto"),
                 Implementation::CComputedGoto => {
                     do_run(ffi::Vm::new(obj, data, max_memory));
                 }
@@ -309,13 +305,10 @@ fn main() -> anyhow::Result<()> {
                 }
             }
         }
-        Cmd::Debug(DebugCmd { file, input, input_file, input_hex }) => {
-            let obj = fs::read(&file)?;
+        Cmd::Debug(DebugCmd { file, asm, obj, input, input_file, input_hex, max_memory }) => {
+            let obj = build_obj(file, asm, obj)?;
 
             let data = read_input(input, input_file, input_hex)?;
-
-            // let (sender, receiver) = mpsc::channel();
-            // let step_wait = Arc::new((Mutex::new(false), Condvar::new()));
 
             let hook = DebugHook {
                 // ops_channel: sender,
@@ -324,9 +317,7 @@ fn main() -> anyhow::Result<()> {
                 ops: vec![],
             };
 
-            let vm = Vm::new_with(obj, data, usize::MAX, hook);
-
-            // let res = std::thread::spawn(move || vm.run());
+            let vm = Vm::new_with(obj, data, max_memory, hook);
 
             run(App {
                 should_quit: false,
@@ -347,6 +338,35 @@ fn main() -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+fn build_obj(file: PathBuf, asm: bool, obj: bool) -> Result<Vec<u8>, anyhow::Error> {
+    Ok(if obj {
+        fs::read(&file).with_context(|| format!("path: {}", file.display()))?
+    } else if asm {
+        let source = fs::read_to_string(&file)?;
+        match parse_asm().parse(&source).into_result() {
+            Ok(obj) => obj.assemble(),
+            Err(errs) => {
+                report_errors(&file, &source, errs);
+            }
+        }
+    } else {
+        let source = fs::read_to_string(&file)?;
+        match cefre::parse::grammar().block.parse(&source).into_result() {
+            Ok(ast) => {
+                let ast = optimize(ast)?;
+
+                // println!("{}", print_ast(&ast));
+                let mut ctx = Ctx::new_root();
+                ctx.compile(&ast)?;
+                ctx.into_object().assemble()
+            }
+            Err(errs) => {
+                report_errors(&file, &source, errs);
+            }
+        }
+    })
 }
 
 fn do_run(mut vm: impl CycleCountVm) {
@@ -403,7 +423,7 @@ fn read_input(
     Ok(data)
 }
 
-fn optimize(ast: mir::ast::Block<'_>) -> CompileResult<mir::ast::Block<'_>> {
+fn optimize(ast: cefre::ast::Block<'_>) -> CompileResult<cefre::ast::Block<'_>> {
     let mut ctx = CheckCtx::new("root");
     ctx.check(&ast)?;
     let ast = DefInline::new().run(&ctx, ast);
@@ -453,7 +473,7 @@ fn optimize(ast: mir::ast::Block<'_>) -> CompileResult<mir::ast::Block<'_>> {
     )]
     let now =
         SystemTime::now().duration_since(UNIX_EPOCH).expect("???").as_nanos() - 1784300000000000000;
-    fs::write(format!("out-{now}.mir"), print_ast(&ast)).unwrap();
+    fs::write(format!("out-{now}.cfr"), print_ast(&ast)).unwrap();
 
     Ok(ast)
 }

@@ -10,7 +10,7 @@ cargo-fuzz = true
 [dependencies]
 libfuzzer-sys = "0.4"
 # mutatis = { version = "0.5", features = ["derive"] }
-vm = { path = ".." }
+palinka = { path = ".." }
 
 [[bin]]
 name = "random-opcodes"

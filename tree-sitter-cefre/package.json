@@ -1,8 +1,8 @@
 {
-  "name": "tree-sitter-mir",
+  "name": "tree-sitter-cefre",
   "version": "0.1.0",
-  "description": "Mir grammar for tree-sitter",
-  "repository": "https://github.com/tree-sitter/tree-sitter-mir",
+  "description": "Cefre grammar for tree-sitter",
+  "repository": "https://github.com/benluelo/palinka",
   "license": "MIT",
   "author": {
     "name": "ben"
@@ -13,7 +13,7 @@
     "incremental",
     "parsing",
     "tree-sitter",
-    "mir"
+    "cefre"
   ],
   "files": [
     "grammar.js",

@@ -2,7 +2,7 @@ use core::fmt;
 
 use petgraph::graph::{DiGraph, NodeIndex};
 
-use crate::mir::ast::{Builtin, BuiltinOrDef, Ident, Val};
+use crate::cefre::ast::{Builtin, BuiltinOrDef, Ident, Val};
 
 pub struct Cfg<'a> {
     cfg: DiGraph<Node<'a>, Edge>,

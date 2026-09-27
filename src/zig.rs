@@ -73,7 +73,7 @@ unsafe extern "C" {
 
 pub struct Vm {
     ptr: *mut c_void,
-    gpa: *mut c_void,
+    // gpa: *mut c_void,
     code_ptr: *mut u8,
     code_len: usize,
     data_ptr: *mut u8,
@@ -87,12 +87,15 @@ impl VmT for Vm {
         let (code_ptr, code_len, _) = code.into_raw_parts();
         let (data_ptr, data_len, _) = data.into_raw_parts();
         let gpa = unsafe { zig_allocator() };
-        // dbg!(&gpa);
         let ptr = unsafe { zig_init(gpa, code_ptr, code_len, data_ptr, data_len, max_memory) };
-        // unsafe {
-        //     println!("{}", const_hex::encode(slice::from_raw_parts(ptr.cast::<u8>(), 100)));
-        // }
-        Self { ptr, gpa, code_ptr, code_len, data_ptr, data_len }
+        Self {
+            ptr,
+            // gpa,
+            code_ptr,
+            code_len,
+            data_ptr,
+            data_len,
+        }
     }
 
     fn run(&mut self) -> VmRunResult {

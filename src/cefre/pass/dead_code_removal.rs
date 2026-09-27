@@ -1,6 +1,6 @@
 use tracing::{instrument, trace, trace_span};
 
-use crate::mir::{
+use crate::cefre::{
     CheckCtx, VarValue, Visitor,
     ast::{Assignment, Block, Builtin, BuiltinOrDef, Else, Expr, Ident, If, Statement},
 };
@@ -258,7 +258,7 @@ mod tests {
     use chumsky::Parser;
 
     use super::*;
-    use crate::mir::{
+    use crate::cefre::{
         parse::{grammar, print_ast},
         pass::init,
     };
@@ -267,7 +267,7 @@ mod tests {
     fn test() {
         init();
 
-        let _raw = include_str!("../../../tests/sha3-256.mir");
+        let _raw = include_str!("../../../tests/sha3-256.cfr");
         let raw = r#"
         def xor64(at, u) {}
         def store64(at, u) {}

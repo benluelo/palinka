@@ -1,5 +1,5 @@
 /**
- * @file Mir grammar for tree-sitter
+ * @file Cefre grammar for tree-sitter
  * @author ben
  * @license MIT
  */
@@ -8,7 +8,7 @@
 // @ts-nocheck
 
 module.exports = grammar({
-  name: "mir",
+  name: "cfr",
 
   word: $ => $.ident,
 

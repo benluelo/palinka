@@ -1,7 +1,7 @@
 #![no_main]
 
 use libfuzzer_sys::{Corpus, fuzz_target};
-use vm::{CycleCountHook, CycleCountVm, Op, Vm, VmT, ffi, tail::TcVm, zig};
+use palinka::{CycleCountHook, CycleCountVm, Op, Vm, VmT, ffi, tail::TcVm, zig};
 
 const MAX_MEMORY: usize = 5 * 1024 * 1024;
 

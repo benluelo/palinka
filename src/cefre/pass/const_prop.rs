@@ -1,6 +1,6 @@
 use tracing::info;
 
-use crate::mir::{CheckCtx, VarValue, Visitor, ast::Expr};
+use crate::cefre::{CheckCtx, VarValue, Visitor, ast::Expr};
 
 pub struct ConstProp;
 
@@ -56,7 +56,7 @@ mod tests {
     use chumsky::Parser;
 
     use super::*;
-    use crate::mir::{
+    use crate::cefre::{
         parse::{grammar, print_ast},
         pass::init,
     };

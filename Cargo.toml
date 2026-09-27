@@ -2,12 +2,13 @@
 members = [".", "fuzz"]
 
 [package]
-name = "vm"
-version = "0.1.0"
+name = "palinka"
+version = "0.0.0"
 edition = "2024"
 
-[profile.release]
-# lto = "fat"
+[profile.lto]
+inherits = "release"
+lto = "fat"
 
 [profile.profiling]
 inherits = "release"
