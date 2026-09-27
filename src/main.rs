@@ -1,4 +1,3 @@
-#![feature(never_type)]
 #![warn(clippy::panic)]
 use core::fmt;
 use std::{

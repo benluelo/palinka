@@ -57,6 +57,8 @@ fn main() {
 
     let bindings = bindgen::Builder::default()
         .header("c/vm.h")
+        .allowlist_file("c/vm.h")
+        .rustified_enum("VmResult")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .generate()
         .expect("unable to generate bindings");

@@ -22,9 +22,10 @@ fn load_nist_vectors(file_name: &str) -> Vec<(usize, Vec<u8>, Vec<u8>)> {
         .lines()
         .filter(|line| !line.is_empty())
         .collect::<Vec<_>>()
-        .chunks_exact(3)
-        .map(|chunk| {
-            let [len, msg, md] = chunk else { panic!() };
+        .as_chunks::<3>()
+        .0
+        .iter()
+        .map(|[len, msg, md]| {
             (
                 len.split_once(" = ").unwrap().1.parse().unwrap(),
                 const_hex::decode(msg.split_once(" = ").unwrap().1).unwrap(),
@@ -43,12 +44,10 @@ fn load_monte_vectors(file_name: &str) -> (Vec<u8>, Vec<Vec<u8>>) {
         .lines()
         .filter(|line| !line.is_empty())
         .collect::<Vec<_>>()
-        .chunks_exact(2)
-        .map(|chunk| {
-            let [_count, md] = chunk else { panic!() };
-
-            const_hex::decode(md.split_once(" = ").unwrap().1).unwrap()
-        })
+        .as_chunks::<2>()
+        .0
+        .iter()
+        .map(|[_count, md]| const_hex::decode(md.split_once(" = ").unwrap().1).unwrap())
         .collect();
 
     (const_hex::decode(seed.strip_prefix("Seed = ").unwrap().trim()).unwrap(), mds)

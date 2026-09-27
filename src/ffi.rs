@@ -3,11 +3,7 @@ use core::slice;
 use crate::{CycleCountVm, VmRunResult, VmT};
 
 mod bindings {
-    #![allow(non_upper_case_globals)]
-    #![allow(non_camel_case_types)]
-    #![allow(non_snake_case)]
-    #![allow(dead_code)]
-    #![allow(unnecessary_transmutes)]
+    #![expect(dead_code, non_camel_case_types)]
 
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
@@ -25,8 +21,8 @@ impl VmT for Vm {
         Self {
             vm: unsafe {
                 bindings::new_vm(
-                    bindings::new_fat(code_ptr, code_len),
-                    bindings::new_fat(data_ptr, data_len),
+                    bindings::Fat { ptr: code_ptr, len: code_len },
+                    bindings::Fat { ptr: data_ptr, len: data_len },
                     max_memory,
                 )
             },
@@ -35,28 +31,25 @@ impl VmT for Vm {
 
     fn run(&mut self) -> VmRunResult {
         match unsafe { bindings::run_vm(&mut self.vm) } {
-            bindings::VmResult_VM_OK => VmRunResult::Done,
-            bindings::VmResult_VM_ERR_OUT_OF_MEMORY => VmRunResult::OutOfMemory,
-            bindings::VmResult_VM_ERR_STACK_EMPTY => VmRunResult::StackEmpty,
-            bindings::VmResult_VM_ERR_INVALID_STACK_IDX => VmRunResult::InvalidStackIdx,
-            bindings::VmResult_VM_ERR_SEGFAULT => VmRunResult::Segfault,
-            bindings::VmResult_VM_ERR_EOF => VmRunResult::Eof,
-            bindings::VmResult_VM_ERR_DIVIDE_BY_ZERO => VmRunResult::DivideByZero,
-            bindings::VmResult_VM_ERR_INVALID_STACK_VALUE => VmRunResult::InvalidStackValue,
-            bindings::VmResult_VM_ERR_UNKNOWN_OP => VmRunResult::UnknownOp,
-            // TODO: Merge this with VM_OK
-            bindings::VmResult_VM_STEP_RESULT_EOF => VmRunResult::Done,
-            bindings::VmResult_VM_STEP_RESULT_TRAP => {
+            bindings::VmResult::VM_OK => VmRunResult::Done,
+            bindings::VmResult::VM_STEP_RESULT_TRAP => {
                 VmRunResult::Trap(unsafe { self.vm.out.trap })
             }
-            bindings::VmResult_VM_STEP_RESULT_EXIT => VmRunResult::Exit(unsafe {
+            bindings::VmResult::VM_STEP_RESULT_EXIT => VmRunResult::Exit(unsafe {
                 if self.vm.out.exit.len == 0 {
                     vec![]
                 } else {
                     slice::from_raw_parts(self.vm.out.exit.ptr, self.vm.out.exit.len).to_vec()
                 }
             }),
-            res => panic!("unknown error code: {res}"),
+            bindings::VmResult::VM_ERR_OUT_OF_MEMORY => VmRunResult::OutOfMemory,
+            bindings::VmResult::VM_ERR_STACK_EMPTY => VmRunResult::StackEmpty,
+            bindings::VmResult::VM_ERR_INVALID_STACK_IDX => VmRunResult::InvalidStackIdx,
+            bindings::VmResult::VM_ERR_SEGFAULT => VmRunResult::Segfault,
+            bindings::VmResult::VM_ERR_EOF => VmRunResult::Eof,
+            bindings::VmResult::VM_ERR_DIVIDE_BY_ZERO => VmRunResult::DivideByZero,
+            bindings::VmResult::VM_ERR_INVALID_STACK_VALUE => VmRunResult::InvalidStackValue,
+            bindings::VmResult::VM_ERR_UNKNOWN_OP => VmRunResult::UnknownOp,
         }
     }
 }
@@ -76,7 +69,3 @@ impl CycleCountVm for Vm {
         self.vm.cycles
     }
 }
-
-#[derive(Debug, thiserror::Error)]
-#[error("{0}")]
-pub struct Error(bindings::VmResult);

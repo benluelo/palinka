@@ -13,58 +13,6 @@ profile.json.gz
 
 tree-sitter-cefre/bindings/
 
-## from the tree-sitter-cefre/.gitignore file
-
-# Rust artifacts
-tree-sitter-cfr/target/
-tree-sitter-cfr/Cargo.lock
-
-# Node artifacts
-tree-sitter-cefre/build/
-tree-sitter-cefre/prebuilds/
-tree-sitter-cefre/node_modules/
-tree-sitter-cefre/package-lock.json
-
-# Swift artifacts
-tree-sitter-cefre/.build/
-tree-sitter-cefre/Package.resolved
-
-# Go artifacts
-tree-sitter-cefre/_obj/
-
-# Python artifacts
-tree-sitter-cefre/.venv/
-tree-sitter-cefre/dist/
-tree-sitter-cefre/*.egg-info
-tree-sitter-cefre/*.whl
-
-# C artifacts
-tree-sitter-cefre/*.a
-tree-sitter-cefre/*.so
-tree-sitter-cefre/*.so.*
-tree-sitter-cefre/*.dylib
-tree-sitter-cefre/*.dll
-tree-sitter-cefre/*.pc
-tree-sitter-cefre/*.exp
-tree-sitter-cefre/*.lib
-
-# Zig artifacts
-tree-sitter-cefre/.zig-cache/
-tree-sitter-cefre/zig-cache/
-tree-sitter-cefre/zig-out/
-
-# Example dirs
-tree-sitter-cefre/examples/*/
-
-# Grammar volatiles
-tree-sitter-cefre/*.wasm
-tree-sitter-cefre/*.obj
-tree-sitter-cefre/*.o
-
-# Archives
-tree-sitter-cefre/*.tar.gz
-tree-sitter-cefre/*.tgz
-tree-sitter-cefre/*.zip
 vm.llbc
 a.out
 .out

@@ -16,24 +16,23 @@ debug = true
 lto = "fat"
 
 [dependencies]
-anyhow = "1.0.102"
+anyhow = "1.0.104"
 arbitrary = { version = "1.4.2", features = ["derive"] }
-argh = "0.1.16"
+argh = "0.1.19"
 ariadne = "0.6.0"
-chumsky = "0.12.0"
-const-hex = "1.18.0"
+chumsky = "0.13.0"
+const-hex = "1.19.3"
 crossterm = "0.29.0"
-either = "1.15.0"
-hex-literal = "1.1.0"
-indexmap = "2.13.0"
+either = "1.18.0"
+indexmap = "2.14.2"
 ratatui = "0.30.2"
-thiserror = "2.0.18"
+thiserror = "2.0.21"
 tracing = "0.1.44"
-tracing-subscriber = { version = "0.3.22", features = ["ansi", "env-filter"] }
+tracing-subscriber = { version = "0.3.23", features = ["ansi", "env-filter"] }
 
 [dev-dependencies]
 criterion = { version = "0.8.2", features = ["html_reports"] }
-rand = "0.10.1"
+rand = "0.10.3"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 

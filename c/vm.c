@@ -1,9 +1,10 @@
+#include <assert.h>
 #include <endian.h>
 #include <stdbool.h>
 #include <stdckdint.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "./vm.h"
@@ -138,6 +139,10 @@ typedef union u64 {
   uint64_t n;
   uint8_t bz[sizeof(uint64_t)];
 } u64;
+
+Fat new_fat(uint8_t const *ptr, size_t len) {
+  return (Fat){.len = len, .ptr = ptr};
+}
 
 static inline uint64_t u64_from_bytes(size_t n, const uint8_t *RESTRICT arr) {
   u64 out = {0};
@@ -287,7 +292,7 @@ inline VmResult run_vm(Vm *vm) {
 #define DISPATCH()                                                             \
   {                                                                            \
     if (vm->pc >= vm->code.len)                                                \
-      return VM_STEP_RESULT_EOF;                                               \
+      return VM_OK;                                                            \
     op = vm->code.ptr[vm->pc];                                                 \
     vm->cycles++;                                                              \
     vm->pc++;                                                                  \
@@ -506,10 +511,10 @@ _DCOPY: {
   try_add(&memory_ptr, (size_t)vm->memory.data, dst,
           VM_ERR_INVALID_STACK_VALUE);
 
-  uint64_t data_ptr;
-  try_add(&data_ptr, (size_t)vm->data.ptr, src, VM_ERR_INVALID_STACK_VALUE);
+  uintptr_t data_ptr;
+  try_add(&data_ptr, (uintptr_t)vm->data.ptr, (uintptr_t)src, VM_ERR_INVALID_STACK_VALUE);
 
-  memcpy((void *)memory_ptr, (void *)data_ptr, len);
+  memcpy(vm->memory.data + dst, vm->data.ptr + src, len);
   DISPATCH();
 };
 _DLEN: {
@@ -681,10 +686,6 @@ Vm new_vm(Fat code, Fat data, size_t max_memory) {
 void drop_vm(Vm *vm) {
   free(vm->stack.data);
   free(vm->memory.data);
-}
-
-Fat new_fat(uint8_t const *ptr, size_t len) {
-  return (Fat){.len = len, .ptr = ptr};
 }
 
 // ENTRYPOINT

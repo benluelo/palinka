@@ -1,4 +1,4 @@
-#![feature(slice_swap_unchecked, never_type, split_array)]
+#![feature(split_array)]
 // #![warn(clippy::panic, clippy::unwrap_in_result)]
 #![feature(generic_const_items, explicit_tail_calls)]
 #![allow(incomplete_features)]

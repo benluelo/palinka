@@ -1,20 +1,15 @@
-#include <assert.h>
-#include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stddef.h>
 
 #include "./op.h"
 
-typedef struct Stack {
-  size_t len;
-  size_t capacity;
-  uint64_t *data;
-} Stack;
-
 typedef enum VmResult : int8_t {
+  /// Signals no error. The operation completed successfully.
   VM_OK = 0,
+
+  VM_STEP_RESULT_TRAP = 1,
+  VM_STEP_RESULT_EXIT = 2,
+
   /// Out of memory.
   VM_ERR_OUT_OF_MEMORY = -1,
   /// Attempted to pop off of an empty stack.
@@ -29,31 +24,37 @@ typedef enum VmResult : int8_t {
   VM_ERR_DIVIDE_BY_ZERO = -6,
   /// Invalid stack value for operation.
   VM_ERR_INVALID_STACK_VALUE = -7,
-  /// Unknonw opcode.
+  /// Unknown opcode.
   VM_ERR_UNKNOWN_OP = -8,
-
-  VM_STEP_RESULT_EOF = 1,
-  VM_STEP_RESULT_TRAP = 2,
-  VM_STEP_RESULT_EXIT = 3,
 } VmResult;
 
+/** <div rustbindgen mustusetype></div> */
+typedef struct Stack {
+  size_t len;
+  size_t capacity;
+  uint64_t *data;
+} Stack;
+
+/** <div rustbindgen mustusetype></div> */
 typedef struct Memory {
   size_t size;
   uint8_t *data;
 } Memory;
 
+/** <div rustbindgen mustusetype></div> */
 typedef struct Fat {
   const uint8_t *ptr;
   size_t len;
 } Fat;
 
+/** <div rustbindgen mustusetype></div> */
 typedef struct Vm {
   Fat code;
   Fat data;
   Stack stack;
   Memory memory;
   size_t pc;
-  union {
+  union Out {
     uint64_t trap;
     Fat exit;
   } out;
@@ -66,5 +67,3 @@ VmResult run_vm(Vm *vm);
 Vm new_vm(Fat code, Fat data, size_t max_memory);
 
 void drop_vm(Vm *vm);
-
-Fat new_fat(uint8_t const *ptr, size_t len);
