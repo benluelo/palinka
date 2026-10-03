@@ -134,8 +134,8 @@
             buildInputs = [ pkgs.tree-sitter ];
             buildPhase = ''
               export HOME=.
-              tree-sitter build -o "$out"
-              chmod +x "$out"
+              tree-sitter build -o "$out/lib/cefre.so"
+              chmod +x "$out/lib/cefre.so"
             '';
           };
         in
@@ -196,7 +196,7 @@
                   name = "install-helix-grammars";
                   text = ''
                     rm -f "$HOME/.config/helix/runtime/grammars/cefre.so"
-                    cp --no-preserve=mode ${cefreTreeSitter} "$HOME/.config/helix/runtime/grammars/cefre.so"
+                    cp --no-preserve=mode ${cefreTreeSitter}/lib/cefre.so "$HOME/.config/helix/runtime/grammars/cefre.so"
                     mkdir -p "$HOME/.config/helix/runtime/queries/cefre"
                     cp --no-preserve=mode -TR ${./tree-sitter-cefre/queries} "$HOME/.config/helix/runtime/queries/cefre"
                   '';
