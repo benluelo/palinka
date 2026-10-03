@@ -127,6 +127,17 @@
                 mv ./a.out "$out"
               '';
             };
+
+          cefreTreeSitter = pkgs.stdenv.mkDerivation {
+            name = "cefre.so";
+            src = ./tree-sitter-cefre;
+            buildInputs = [ pkgs.tree-sitter ];
+            buildPhase = ''
+              export HOME=.
+              tree-sitter build -o "$out"
+              chmod +x "$out"
+            '';
+          };
         in
         {
           _module.args.pkgs = import nixpkgs {
@@ -181,6 +192,26 @@
                     '';
                     meta.description = "Run a mini comparison benchmark of all implementations.";
                   };
+                install-helix-grammars = pkgs.writeShellApplication {
+                  name = "install-helix-grammars";
+                  text = ''
+                    rm -f "$HOME/.config/helix/runtime/grammars/cefre.so"
+                    cp --no-preserve=mode ${cefreTreeSitter} "$HOME/.config/helix/runtime/grammars/cefre.so"
+                    mkdir -p "$HOME/.config/helix/runtime/queries/cefre"
+                    cp --no-preserve=mode -TR ${./tree-sitter-cefre/queries} "$HOME/.config/helix/runtime/queries/cefre"
+                  '';
+                  meta.description = "Run a mini comparison benchmark of all implementations.";
+                };
+                generate-tree-sitter-grammars = pkgs.writeShellApplication {
+                  name = "generate-tree-sitter-grammars";
+                  runtimeInputs = [ pkgs.tree-sitter ];
+                  text = ''
+                    pushd tree-sitter-cefre/ >/dev/null 
+                    tree-sitter generate --abi 14
+                    popd >/dev/null
+                  '';
+                  meta.description = "Run a mini comparison benchmark of all implementations.";
+                };
                 install-nist-vectors = pkgs.writeShellApplication {
                   name = "install-nist-vectors";
                   text = ''

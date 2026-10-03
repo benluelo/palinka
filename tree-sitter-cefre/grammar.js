@@ -8,7 +8,7 @@
 // @ts-nocheck
 
 module.exports = grammar({
-  name: "cfr",
+  name: "cefre",
 
   word: $ => $.ident,
 
