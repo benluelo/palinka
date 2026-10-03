@@ -200,7 +200,7 @@
                     mkdir -p "$HOME/.config/helix/runtime/queries/cefre"
                     cp --no-preserve=mode -TR ${./tree-sitter-cefre/queries} "$HOME/.config/helix/runtime/queries/cefre"
                   '';
-                  meta.description = "Run a mini comparison benchmark of all implementations.";
+                  meta.description = "Install tree-sitter grammars and queries for helix.";
                 };
                 generate-tree-sitter-grammars = pkgs.writeShellApplication {
                   name = "generate-tree-sitter-grammars";
@@ -210,7 +210,7 @@
                     tree-sitter generate --abi 14
                     popd >/dev/null
                   '';
-                  meta.description = "Run a mini comparison benchmark of all implementations.";
+                  meta.description = "Generate the tree-sitter grammars from the definitions.";
                 };
                 install-nist-vectors = pkgs.writeShellApplication {
                   name = "install-nist-vectors";
