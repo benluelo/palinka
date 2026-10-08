@@ -1,3 +1,5 @@
 Diagnostics:
   ClangTidy:
     Add: []
+CompileFlags:
+  Add: [-std=gnu23, -xc, -Weverything, -Wno-unsafe-buffer-usage, -Wno-gnu-label-as-value, -Wno-declaration-after-statement, -Wno-c99-extensions, -Wno-pre-c23-compat]

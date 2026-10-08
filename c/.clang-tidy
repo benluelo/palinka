@@ -13,11 +13,13 @@ Checks: >
     bugprone-signed-char-misuse,
     bugprone-sizeof-expression,
     bugprone-branch-clone,
+    clang-analyzer,
     -clang-analyzer-security.insecureAPI.*,
     -misc-no-recursion,
     -readability-function-size,
     -readability-function-cognitive-complexity,
     -readability-identifier-length,
+    extra-semi-stmt,
 
-ExtraArgs: [-std=c11]
+ExtraArgs: []
 

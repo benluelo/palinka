@@ -1,5 +1,5 @@
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #include "./op.h"
 
@@ -32,18 +32,18 @@ typedef enum VmResult : int8_t {
 typedef struct Stack {
   size_t len;
   size_t capacity;
-  uint64_t *data;
+  uint64_t *restrict data __attribute__((counted_by(len)));
 } Stack;
 
 /** <div rustbindgen mustusetype></div> */
 typedef struct Memory {
   size_t size;
-  uint8_t *data;
+  uint8_t *restrict data __attribute__((counted_by(size)));
 } Memory;
 
 /** <div rustbindgen mustusetype></div> */
 typedef struct Fat {
-  const uint8_t *ptr;
+  const uint8_t *restrict ptr;
   size_t len;
 } Fat;
 
@@ -62,8 +62,8 @@ typedef struct Vm {
   size_t max_memory;
 } Vm;
 
-VmResult run_vm(Vm *vm);
+VmResult run_vm(Vm *restrict vm);
 
 Vm new_vm(Fat code, Fat data, size_t max_memory);
 
-void drop_vm(Vm *vm);
+void drop_vm(Vm *restrict vm);

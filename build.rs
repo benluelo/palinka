@@ -41,6 +41,9 @@ fn main() {
                 &"-O3",
                 &"-static",
                 &"-fPIC",
+                &"-march=native",
+                &"-fstrict-aliasing",
+                &"-std=gnu23",
                 &"-DDO_RESTRICT",
                 // &"-DDEBUG",
                 &"-g",
@@ -48,6 +51,8 @@ fn main() {
                 &"-o",
                 &outdir.join("vm.o"),
                 &"./c/vm.c",
+                &"-mllvm",
+                &"-structurizecfg-skip-uniform-regions",
             ],
         ],
     );
@@ -86,6 +91,7 @@ fn main() {
 #[track_caller]
 fn run(cmd: impl AsRef<OsStr>, args: &[&[&dyn AsRef<OsStr>]]) {
     if !Command::new(cmd)
+        .env_remove("NIX_ENFORCE_NO_NATIVE")
         .args(args.iter().cloned().flatten())
         .stderr(Stdio::inherit())
         .stdout(Stdio::inherit())

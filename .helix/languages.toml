@@ -1,5 +1,5 @@
 [language-server]
-clangd = { command = "clangd", args = [ "--clang-tidy" ] }
+clangd = { command = "clangd", args = [ "--query-driver=/nix/store/*/bin/clang", "--clang-tidy" ] }
 
 [[language]]
 name = "cefre"
