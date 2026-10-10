@@ -14,8 +14,8 @@ fn main() {
 
     println!("cargo:rustc-link-search={}", outdir.to_str().unwrap());
 
-    println!("cargo:rustc-link-lib=vm");
-    println!("cargo:rustc-link-lib=vm_zig");
+    println!("cargo:rustc-link-lib=palinka");
+    println!("cargo:rustc-link-lib=palinka_zig");
 
     println!("cargo:rerun-if-changed=c/");
     println!("cargo:rerun-if-changed=zig/");
@@ -49,20 +49,19 @@ fn main() {
                 &"-g",
                 &"-c",
                 &"-o",
-                &outdir.join("vm.o"),
-                &"./c/vm.c",
+                &outdir.join("palinka.o"),
+                &"./c/palinka.c",
                 &"-mllvm",
                 &"-structurizecfg-skip-uniform-regions",
             ],
         ],
     );
 
-    run("ar", &[&[&"crs", &outdir.join("libvm.a"), &outdir.join("vm.o")]]);
-    // run("llvm-ranlib", &[&outdir.join("libvm.a")]);
+    run("ar", &[&[&"crs", &outdir.join("libpalinka.a"), &outdir.join("palinka.o")]]);
 
     let bindings = bindgen::Builder::default()
-        .header("c/vm.h")
-        .allowlist_file("c/vm.h")
+        .header("c/palinka.h")
+        .allowlist_file("c/palinka.h")
         .rustified_enum("VmResult")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .generate()
@@ -76,12 +75,12 @@ fn main() {
         &[
             &[
                 &"build-lib",
-                &"./zig/src/vm_zig.zig",
+                &"./zig/palinka_zig.zig",
                 &"-fsingle-threaded",
                 &"-static",
                 &"-fPIC",
                 &"-Ofast",
-                &format!("-femit-bin={}", outdir.join("libvm_zig.a").to_str().unwrap()),
+                &format!("-femit-bin={}", outdir.join("libpalinka_zig.a").to_str().unwrap()),
             ],
             if use_lto { &[&"-flto"] } else { &[] },
         ],

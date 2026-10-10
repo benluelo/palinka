@@ -1,4 +1,5 @@
 #![warn(clippy::panic)]
+
 use core::fmt;
 use std::{
     cmp, fs, io,

@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "./vm.h"
+#include "./palinka.h"
 
 #ifdef DEBUG
 #include <stdio.h>
