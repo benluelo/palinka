@@ -1,100 +1,110 @@
 #include <stdint.h>
 
-enum Op: uint8_t {
-  PUSH0 = 0x00,
-  PUSH1 = 0x01,
-  PUSH2 = 0x02,
-  PUSH3 = 0x03,
-  PUSH4 = 0x04,
-  PUSH5 = 0x05,
-  PUSH6 = 0x06,
-  PUSH7 = 0x07,
-  PUSH8 = 0x08,
-  DUP = 0x09,
-  DUP0 = 0x0a,
-  SWAP = 0x0b,
-  SWAP0 = 0x0c,
-  POP = 0x0d,
-  ALLOC = 0x20,
-  WRITE1 = 0x21,
-  WRITE2 = 0x22,
-  WRITE3 = 0x23,
-  WRITE4 = 0x24,
-  WRITE5 = 0x25,
-  WRITE6 = 0x26,
-  WRITE7 = 0x27,
-  WRITE8 = 0x28,
-  READ1 = 0x29,
-  READ2 = 0x2a,
-  READ3 = 0x2b,
-  READ4 = 0x2c,
-  READ5 = 0x2d,
-  READ6 = 0x2e,
-  READ7 = 0x2f,
-  READ8 = 0x30,
-  DREAD1 = 0x31,
-  DREAD2 = 0x32,
-  DREAD3 = 0x33,
-  DREAD4 = 0x34,
-  DREAD5 = 0x35,
-  DREAD6 = 0x36,
-  DREAD7 = 0x37,
-  DREAD8 = 0x38,
-  DCOPY = 0x39,
-  DLEN = 0x3a,
-  ADD = 0x40,
-  SUB = 0x41,
-  MUL = 0x42,
-  DIV = 0x43,
-  EXP = 0x44,
-  MOD = 0x45,
-  EQ = 0x4a,
-  NEQ = 0x4b,
-  LT = 0x4c,
-  GT = 0x4d,
-  NOT = 0x4e,
-  SHL = 0x4f,
-  SHR = 0x50,
-  NEG = 0x51,
-  OR = 0x52,
-  XOR = 0x53,
-  AND = 0x54,
-  JUMP = 0xa0,
-  JNZ = 0xa1,
-  CALL = 0xa2,
-  EXIT = 0xa4,
-  TRAP = 0xa5,
+enum Op : uint8_t {
+  OP_PUSH0 = 0x00,
+  OP_PUSH1 = 0x01,
+  OP_PUSH2 = 0x02,
+  OP_PUSH3 = 0x03,
+  OP_PUSH4 = 0x04,
+  OP_PUSH5 = 0x05,
+  OP_PUSH6 = 0x06,
+  OP_PUSH7 = 0x07,
+  OP_PUSH8 = 0x08,
+  OP_DUP = 0x09,
+  OP_DUP0 = 0x0a,
+  OP_SWAP = 0x0b,
+  OP_SWAP0 = 0x0c,
+  OP_POP = 0x0d,
+  OP_ALLOC = 0x20,
+  OP_WRITE1 = 0x21,
+  OP_WRITE2 = 0x22,
+  OP_WRITE3 = 0x23,
+  OP_WRITE4 = 0x24,
+  OP_WRITE5 = 0x25,
+  OP_WRITE6 = 0x26,
+  OP_WRITE7 = 0x27,
+  OP_WRITE8 = 0x28,
+  OP_READ1 = 0x29,
+  OP_READ2 = 0x2a,
+  OP_READ3 = 0x2b,
+  OP_READ4 = 0x2c,
+  OP_READ5 = 0x2d,
+  OP_READ6 = 0x2e,
+  OP_READ7 = 0x2f,
+  OP_READ8 = 0x30,
+  OP_DREAD1 = 0x31,
+  OP_DREAD2 = 0x32,
+  OP_DREAD3 = 0x33,
+  OP_DREAD4 = 0x34,
+  OP_DREAD5 = 0x35,
+  OP_DREAD6 = 0x36,
+  OP_DREAD7 = 0x37,
+  OP_DREAD8 = 0x38,
+  OP_DCOPY = 0x39,
+  OP_DLEN = 0x3a,
+  OP_ADD = 0x40,
+  OP_SUB = 0x41,
+  OP_MUL = 0x42,
+  OP_DIV = 0x43,
+  OP_EXP = 0x44,
+  OP_MOD = 0x45,
+  OP_EQ = 0x4a,
+  OP_NEQ = 0x4b,
+  OP_LT = 0x4c,
+  OP_GT = 0x4d,
+  OP_NOT = 0x4e,
+  OP_SHL = 0x4f,
+  OP_SHR = 0x50,
+  OP_NEG = 0x51,
+  OP_OR = 0x52,
+  OP_XOR = 0x53,
+  OP_AND = 0x54,
+  OP_JUMP = 0xa0,
+  OP_JNZ = 0xa1,
+  OP_CALL = 0xa2,
+  OP_EXIT = 0xa4,
+  OP_TRAP = 0xa5,
 };
 
-inline uint64_t op_add(uint64_t a, uint64_t b) { return a + b; }
+// typedef uint64_t __attribute__((overflow_behavior(wrap))) word;
 
-inline uint64_t op_sub(uint64_t a, uint64_t b) { return a - b; }
+typedef uint64_t word;
 
-inline uint64_t op_mul(uint64_t a, uint64_t b) { return a * b; }
+inline word op_add(word a, word b) { return a + b; }
 
-inline uint64_t op_div(uint64_t a, uint64_t b) { return a / b; }
+inline word op_sub(word a, word b) { return a - b; }
 
-inline uint64_t op_not(uint64_t a) { return a == 0; }
+inline word op_mul(word a, word b) { return a * b; }
 
-inline uint64_t op_gt(uint64_t a, uint64_t b) { return a > b; }
+inline word op_div(word a, word b) {
+  [[clang::assume(b != 0)]];
+  return a / b;
+}
 
-inline uint64_t op_lt(uint64_t a, uint64_t b) { return a < b; }
+inline word op_not(word a) { return a == 0; }
 
-inline uint64_t op_neq(uint64_t a, uint64_t b) { return a != b; }
+inline word op_gt(word a, word b) { return a > b; }
 
-inline uint64_t op_eq(uint64_t a, uint64_t b) { return a == b; }
+inline word op_lt(word a, word b) { return a < b; }
 
-inline uint64_t op_mod(uint64_t a, uint64_t b) { return a % b; }
+inline word op_neq(word a, word b) { return a != b; }
 
-inline uint64_t op_and(uint64_t a, uint64_t b) { return a & b; }
+inline word op_eq(word a, word b) { return a == b; }
 
-inline uint64_t op_xor(uint64_t a, uint64_t b) { return a ^ b; }
+inline word op_mod(word a, word b) {
+  [[clang::assume(b != 0)]];
+  return a % b;
+}
 
-inline uint64_t op_or(uint64_t a, uint64_t b) { return a | b; }
+inline word op_and(word a, word b) { return a & b; }
 
-inline uint64_t op_neg(uint64_t a) { return ~a; }
+inline word op_xor(word a, word b) { return a ^ b; }
 
-inline uint64_t op_expmod(uint64_t a, uint64_t b) {
+inline word op_or(word a, word b) { return a | b; }
+
+inline word op_neg(word a) { return ~a; }
+
+inline word op_expmod(word a, word b) {
   if (b == 0) {
     return 1;
   }
@@ -108,7 +118,7 @@ inline uint64_t op_expmod(uint64_t a, uint64_t b) {
       acc = (acc * base) % 0xFFFFFFFFFFFFFFFF;
       // since exp!=0, finally the exp must be 1.
       if (exp == 1) {
-        return (uint64_t)acc;
+        return (word)acc;
       }
     }
     exp >>= 1;
@@ -116,14 +126,14 @@ inline uint64_t op_expmod(uint64_t a, uint64_t b) {
   }
 }
 
-inline uint64_t op_shr(uint64_t a, uint64_t shift) {
-  // return std.math.shr(u64, a, shift);
-  if (shift >= 64) return 0;
+inline word op_shr(word a, word shift) {
+  if (shift >= 64)
+    return 0;
   return a >> shift;
 }
 
-inline uint64_t op_shl(uint64_t a, uint64_t shift) {
-  // return std.math.shl(u64, a, shift);
-  if (shift >= 64) return 0;
+inline word op_shl(word a, word shift) {
+  if (shift >= 64)
+    return 0;
   return a << shift;
 }
